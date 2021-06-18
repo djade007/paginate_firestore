@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:paginate_firestore/paginate_firestore.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:paginate_firestore/controllers/paginate_controller.dart';
+import 'package:paginate_firestore/paginate_firestore.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,7 +14,7 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'Firestore pagination library',
       theme: ThemeData(
         primarySwatch: Colors.yellow,
@@ -25,7 +27,12 @@ class MyApp extends StatelessWidget {
 }
 
 class HomePage extends StatelessWidget {
-  const HomePage({Key? key}) : super(key: key);
+  HomePage({Key? key}) : super(key: key);
+
+  final controller = PaginateController(
+    query: FirebaseFirestore.instance.collection('users').orderBy('name'),
+    isLive: true,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -34,25 +41,23 @@ class HomePage extends StatelessWidget {
         title: Text('Firestore pagination example'),
         centerTitle: true,
       ),
-      body: PaginateFirestore(
+      body: PaginateFirestore<Map<String, dynamic>>(
+        controller: controller,
         // Use SliverAppBar in header to make it sticky
         header: SliverToBoxAdapter(child: Text('HEADER')),
         footer: SliverToBoxAdapter(child: Text('FOOTER')),
         // item builder type is compulsory.
-        itemBuilderType:
-            PaginateBuilderType.listView, //Change types accordingly
+        itemBuilderType: PaginateBuilderType.listView,
+        //Change types accordingly
         itemBuilder: (index, context, documentSnapshot) {
-          final data = documentSnapshot.data() as Map?;
+          final data = documentSnapshot.data();
           return ListTile(
             leading: CircleAvatar(child: Icon(Icons.person)),
             title: data == null ? Text('Error in data') : Text(data['name']),
             subtitle: Text(documentSnapshot.id),
           );
         },
-        // orderBy is compulsory to enable pagination
-        query: FirebaseFirestore.instance.collection('users').orderBy('name'),
         // to fetch real-time data
-        isLive: true,
       ),
     );
   }
