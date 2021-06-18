@@ -71,11 +71,24 @@ class PaginateController<T> extends GetxController {
         _initializing.value = false;
         _hasReachedEnd.value = querySnapshot.docs.length < itemsPerPage;
         _items.assignAll(querySnapshot.docs);
-      });
+      })
+        ..onError((e, s) {
+          print(e);
+          print(s);
+          _error.value = e;
+          _initializing.value = false;
+        });
     } else {
-      final querySnapshot = await localQuery.get();
-      _items.assignAll(querySnapshot.docs);
-      _initializing.value = false;
+      try {
+        final querySnapshot = await localQuery.get();
+        _items.assignAll(querySnapshot.docs);
+        _initializing.value = false;
+      } on Exception catch (e, s) {
+        print(e);
+        print(s);
+        _error.value = e;
+        _initializing.value = false;
+      }
     }
   }
 

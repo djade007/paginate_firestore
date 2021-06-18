@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  paginate_firestore:
+  get_paginate_firestore:
     path: ../
 
 dev_dependencies:

@@ -1,4 +1,4 @@
-library paginate_firestore;
+library get_paginate_firestore;
 
 import 'dart:math';
 
@@ -12,6 +12,8 @@ import 'widgets/empty_display.dart';
 import 'widgets/empty_separator.dart';
 import 'widgets/error_display.dart';
 import 'widgets/initial_loader.dart';
+
+export 'controllers/paginate_controller.dart';
 
 class PaginateFirestore<T> extends StatelessWidget {
   const PaginateFirestore({
@@ -60,7 +62,7 @@ class PaginateFirestore<T> extends StatelessWidget {
 
   final Widget Function(Exception)? onError;
 
-  final Widget Function(int, BuildContext, DocumentSnapshot<T>) itemBuilder;
+  final Widget Function(int, DocumentSnapshot<T>) itemBuilder;
 
   final VoidCallback? onReachedEnd;
 
@@ -114,7 +116,7 @@ class PaginateFirestore<T> extends StatelessWidget {
                   controller.fetchPaginatedList();
                   return bottomLoader;
                 }
-                return itemBuilder(index, context, items[index]);
+                return itemBuilder(index, items[index]);
               },
               childCount:
                   controller.hasReachedEnd ? items.length : items.length + 1,
@@ -146,7 +148,7 @@ class PaginateFirestore<T> extends StatelessWidget {
                     controller.fetchPaginatedList();
                     return bottomLoader;
                   }
-                  return itemBuilder(itemIndex, context, items[itemIndex]);
+                  return itemBuilder(itemIndex, items[itemIndex]);
                 }
                 return separator;
               },
@@ -185,7 +187,7 @@ class PaginateFirestore<T> extends StatelessWidget {
               controller.fetchPaginatedList();
               return bottomLoader;
             }
-            return itemBuilder(index, context, items[index]);
+            return itemBuilder(index, items[index]);
           },
           childCount:
               controller.hasReachedEnd ? items.length : items.length + 1,

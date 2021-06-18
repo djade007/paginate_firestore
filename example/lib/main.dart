@@ -2,8 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:paginate_firestore/controllers/paginate_controller.dart';
-import 'package:paginate_firestore/paginate_firestore.dart';
+import 'package:get_paginate_firestore/get_paginate_firestore.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,7 +48,7 @@ class HomePage extends StatelessWidget {
         // item builder type is compulsory.
         itemBuilderType: PaginateBuilderType.listView,
         //Change types accordingly
-        itemBuilder: (index, context, documentSnapshot) {
+        itemBuilder: (index, documentSnapshot) {
           final data = documentSnapshot.data();
           return ListTile(
             leading: CircleAvatar(child: Icon(Icons.person)),
