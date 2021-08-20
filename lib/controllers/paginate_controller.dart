@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 class PaginateController<T> extends GetxController {
-  final Query<T> query;
+  Query<T>? _query;
   final int itemsPerPage;
   final DocumentSnapshot<T>? startAfterDocument;
   DocumentSnapshot<T>? _lastDocument;
@@ -31,15 +31,17 @@ class PaginateController<T> extends GetxController {
 
   StreamSubscription? _baseStream;
   StreamSubscription? _paginatedStream;
+  StreamSubscription? _initializeStream;
+  StreamSubscription? _endStream;
 
   PaginateController({
-    required this.query,
-    this.itemsPerPage = 15,
+    Query<T>? query,
+    this.itemsPerPage = 12,
     this.startAfterDocument,
     this.isLive = false,
     this.onReachedEnd,
     this.onLoaded,
-  });
+  }) : _query = query;
 
   @override
   void onInit() {
@@ -47,13 +49,23 @@ class PaginateController<T> extends GetxController {
     _setUp();
   }
 
+  void setQuery(Query<T>? value) {
+    closeStreams();
+    if (value == null) return;
+
+    _initializing.value = true;
+    _query = value;
+    _setUp();
+  }
+
   void _setUp() {
-    _hasReachedEnd.listen((end) {
+    _endStream = _hasReachedEnd.listen((end) {
       if (end && onReachedEnd != null) {
         onReachedEnd!();
       }
     });
-    _initializing.listen((loading) {
+
+    _initializeStream = _initializing.listen((loading) {
       if (!loading && onLoaded != null) {
         onLoaded!();
       }
@@ -64,6 +76,7 @@ class PaginateController<T> extends GetxController {
   void refreshPaginatedList() async {
     _lastDocument = null;
     final localQuery = _getQuery();
+    if (localQuery == null) return;
     if (isLive) {
       _baseStream?.cancel();
       _paginatedStream?.cancel();
@@ -71,6 +84,7 @@ class PaginateController<T> extends GetxController {
         _initializing.value = false;
         _hasReachedEnd.value = querySnapshot.docs.length < itemsPerPage;
         _items.assignAll(querySnapshot.docs);
+        _setLastDocument();
       })
         ..onError((e, s) {
           print(e);
@@ -82,6 +96,7 @@ class PaginateController<T> extends GetxController {
       try {
         final querySnapshot = await localQuery.get();
         _items.assignAll(querySnapshot.docs);
+        _setLastDocument();
         _initializing.value = false;
       } on Exception catch (e, s) {
         print(e);
@@ -94,6 +109,8 @@ class PaginateController<T> extends GetxController {
 
   void fetchPaginatedList() async {
     final localQuery = _getQuery();
+    if (localQuery == null) return;
+
     if (initializing) {
       refreshPaginatedList();
       return;
@@ -103,21 +120,26 @@ class PaginateController<T> extends GetxController {
 
     // load more
     final previous = items.toList();
+    await Future.delayed(Duration(seconds: 1));
 
     if (isLive) {
       _paginatedStream?.cancel();
       _paginatedStream = localQuery.snapshots().listen((querySnapshot) {
         _hasReachedEnd.value = querySnapshot.docs.isEmpty;
         _items.assignAll(previous + querySnapshot.docs);
+        _setLastDocument();
       });
     } else {
       final querySnapshot = await localQuery.get();
       _items.assignAll(previous + querySnapshot.docs);
+      _setLastDocument();
     }
   }
 
-  Query<T> _getQuery() {
-    var localQuery = query;
+  Query<T>? _getQuery() {
+    var localQuery = _query;
+    if (localQuery == null) return null;
+
     if (_lastDocument != null) {
       localQuery = localQuery.startAfterDocument(_lastDocument!);
     } else if (startAfterDocument != null) {
@@ -128,10 +150,22 @@ class PaginateController<T> extends GetxController {
     return localQuery;
   }
 
-  @override
-  void onClose() {
+  void _setLastDocument() {
+    if (_items.isNotEmpty) {
+      _lastDocument = _items.last;
+    }
+  }
+
+  void closeStreams() {
     _baseStream?.cancel();
     _paginatedStream?.cancel();
+    _initializeStream?.cancel();
+    _endStream?.cancel();
+  }
+
+  @override
+  void onClose() {
+    closeStreams();
     super.onClose();
   }
 }
