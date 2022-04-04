@@ -1,6 +1,6 @@
 name: get_paginate_firestore
 description: A flutter package to simplify pagination with firestore data using GetX state management.
-version: 1.0.0
+version: 1.0.1
 homepage: https://github.com/djade/paginate_firestore
 issue_tracker: https://github.com/djade/paginate_firestore/issues
 
@@ -10,8 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cloud_firestore: ^2.5.4
-  get: ^4.3.8
+  cloud_firestore: ^3.1.11
+  get: ^4.6.1
 
 dev_dependencies:
   flutter_test:
