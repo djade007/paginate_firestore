@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cloud_firestore: ^4.0.5
+  cloud_firestore: ^4.6.0
   get: ^4.6.5
 
 dev_dependencies:
